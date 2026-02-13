@@ -9,11 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('technician_profile', function (Blueprint $table) {
+        Schema::create('technician_profiles', function (Blueprint $table) {
             $table->uuid("id")->primary();
 
             $table->uuid("user_id")->unique();
-            $table->string("city_node");
+            $table->string("city_code");
 
             $table->timestampTz("verified_at")->nullable();
             $table->uuid("verified_by_user_id")->nullable();
@@ -44,6 +44,6 @@ return new class extends Migration
     
     public function down(): void
     {
-        Schema::dropIfExists('technician_profile');
+        Schema::dropIfExists('technician_profiles');
     }
 };
