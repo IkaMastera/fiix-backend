@@ -8,6 +8,7 @@ use App\Models\Job;
 use App\Models\JobAssignment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Auth\Access\AuthorizationException;
 
 final class JobAssignmentService
 {
@@ -22,7 +23,7 @@ final class JobAssignmentService
             $current = JobStatus::from($job->status);
 
             if (!in_array($actor->role, ['ADMIN', 'OPERATOR'], true)) {
-                throw new InvalidJobTransition("Only operator/admin can assign or reassign");
+                throw new AuthorizationException("Only operator/admin can assign or reassign");
             }
 
             if ($current !== JobStatus::TRIAGED) {
@@ -67,7 +68,7 @@ final class JobAssignmentService
             $current = JobStatus::from($job->status);
 
             if (!in_array($actor->role, ['ADMIN', 'OPERATOR'], true)) {
-                throw new InvalidJobTransition("Only operator/admin can assign or reassign");
+                throw new AuthorizationException("Only operator/admin can assign or reassign");
             }
 
             if ($current !== JobStatus::ASSIGNED) {
