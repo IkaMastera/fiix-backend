@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Policies;
+namespace App\Domain\Jobs\Policies;
 
 use App\Models\User;
 use App\Models\Job;
