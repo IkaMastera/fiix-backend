@@ -24,7 +24,7 @@ return new class extends Migration
             $table->text("reason_note")->nullable();
 
             // For append only
-            $table->timestampTz("created_at")->userCurrent();
+            $table->timestampTz("created_at")->useCurrent();
 
             $table->foreign("job_id")
                 ->references("id")
