@@ -92,6 +92,7 @@ final class JobAssignmentService
             $active->is_active = false;
             $active->deactivated_at = now();
             $active->deactivated_by_user_id = $actor->id;
+            $active->deactivation_reason = 'reassigned';
             $active->save();
 
             $this->workflow->transition(
