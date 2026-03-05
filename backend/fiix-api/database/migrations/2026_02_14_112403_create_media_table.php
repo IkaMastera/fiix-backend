@@ -27,8 +27,8 @@ return new class extends Migration
             $table->boolean("is_primary")->default(false);
             $table->integer("sort_order")->default(0);
 
-            $table->timestampTz("created_at")->userCurrent();
-            $table->timestampTz("updated_at")->userCurrent();
+            $table->timestampTz("created_at")->useCurrent();
+            $table->timestampTz("updated_at")->useCurrent();
 
             $table->index(['owner_type', 'owner_id']);
         });
