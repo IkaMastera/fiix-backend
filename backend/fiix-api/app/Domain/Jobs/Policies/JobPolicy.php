@@ -31,10 +31,12 @@ class JobPolicy
         }
 
         // Technician only for assigned jobs
-        if ($user->role === 'technician') {
-            $isAssignedToTech = $job->activeAssignment()
-                ->where('technician_user_id', $user->id)
-                ->exists();
+        $activeAssignment = $job->relationLoaded('activeAssignment')
+            ? $job->activeAssignment
+            : $job->activeAssignment()->first();
+
+        $isAssignedToTech = $activeAssignment
+            && (string) $activeAssignment->technician_user_id === (string) $user->id;
 
             if (!$isAssignedToTech) {
                 return false;
