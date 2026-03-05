@@ -20,12 +20,12 @@ final class JobResource extends JsonResource
         $status = $statusEnum->value;
 
         $isOperatorOrAdmin =
-            $actor && in_array($actor->role, ['ADMIN', 'OPERATOR'], true);
+            $actor && in_array($actor->role, ['admin', 'operator'], true);
 
         $isCustomerOwner =
             $actor && (string) $this->customer_user_id === (string) $actor->id;
 
-        $isTech = $actor && $actor->role === 'TECHNICIAN';
+        $isTech = $actor && $actor->role === 'technician';
 
         $isJobInTechVisibleState = in_array(
             $statusEnum,

@@ -26,22 +26,22 @@ final class JobWorkflowService
 
             // Terminal states are read-only
             if ($from->isTerminal()) {
-                throw new InvalidJobTransition("Job is terminal: {$from->value}");
+                throw new InvalidJobTransition("Job is terminal: {$from->value}", $from->value, null);
             }
 
             // State machine enforcement
             if (!JobTransitionMap::isAllowed($from, $to)) {
-                throw new InvalidJobTransition("Not allowed: {$from->value} -> {$to->value}");
+                throw new InvalidJobTransition("Not allowed: {$from->value} -> {$to->value}", $from->value, $to->value);
             }
 
             // Authorization enforcement (explicit actor)
             if (Gate::forUser($actor)->denies('transition', [$job, $to->value])) {
-                throw new InvalidJobTransition("Forbidden transition for this user"); 
+                throw new InvalidJobTransition("Forbidden transition for this user", $from->value, $to->value);
             }
 
             // BLOCKED requires reason (external cause only)
             if ($to === JobStatus::BLOCKED && !$reasonCode) {
-                throw new InvalidJobTransition("BLOCKED requires reason_code");
+                throw new InvalidJobTransition("BLOCKED requires reason_code", $from->value, $to->value);
             }
 
             // Accept invariant (ASSIGNED -> IN_PROGRESS)
@@ -53,13 +53,17 @@ final class JobWorkflowService
 
                 if (!$assignment) {
                     throw new InvalidJobTransition(
-                        "Accept requires ACTIVE assignment for this technician"
+                        "Accept requires ACTIVE assignment for this technician",
+                        $from->value,
+                        $to->value
                     );
                 }
 
                 if ($assignment->accepted_at !== null) {
                     throw new InvalidJobTransition(
-                        "Assignment already accepted"
+                        "Assignment already accepted",
+                        $from->value,
+                        $to->value
                     );
                 }
 

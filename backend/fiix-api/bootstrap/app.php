@@ -104,13 +104,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Domain invalid transition → 409
         $exceptions->render(function (InvalidJobTransition $e) use ($error) {
+            $details = array_filter([
+                'current_status'   => $e->current_status,
+                'attempted_status' => $e->attempted_status,
+            ], fn ($v) => $v !== null);
             return $error(
                 'invalid_job_transition',
                 $e->getMessage(),
-                [
-                    'current_status'   => $e->current_status,
-                    'attempted_status' => $e->attempted_status,
-                ],
+                $details,
                 409
             );
         });

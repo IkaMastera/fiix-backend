@@ -1,5 +1,7 @@
 <?php
 
+// Note: filename has a typo (crate vs create); left as-is to preserve migration history.
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,7 +15,7 @@ return new class extends Migration
             $table->uuid("id")->primary();
             $table->string("phone")->nullable()->unique();
             $table->string("email")->nullable()->unique();
-            $table->string("password_hash")->nullable();
+            $table->string("password")->nullable();
 
             // Role + status
             $table->string("role");

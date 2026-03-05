@@ -29,6 +29,8 @@ return new class extends Migration
 
             //Location (v1 is static for now)
             $table->string("address_text");
+            $table->decimal("lat", 10, 7)->nullable();
+            $table->decimal("lng", 10, 7)->nullable();
             $table->string("city_code");
 
             //Priority + state machine

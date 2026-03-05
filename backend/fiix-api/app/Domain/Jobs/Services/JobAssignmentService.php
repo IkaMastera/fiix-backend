@@ -22,20 +22,20 @@ final class JobAssignmentService
 
             $current = JobStatus::from($job->status);
 
-            if (!in_array($actor->role, ['ADMIN', 'OPERATOR'], true)) {
+            if (!in_array($actor->role, ['admin', 'operator'], true)) {
                 throw new AuthorizationException("Only operator/admin can assign or reassign");
             }
 
             if ($current !== JobStatus::TRIAGED) {
-                throw new InvalidJobTransition("Assign allowed only from TRIAGED. Current: {$current->value}");
+                throw new InvalidJobTransition("Assign allowed only from TRIAGED. Current: {$current->value}", $current->value, JobStatus::ASSIGNED->value);
             }
 
-            if ($technician->role !== 'TECHNICIAN') {
+            if ($technician->role !== 'technician') {
                 throw new InvalidJobTransition("Assigned user must have TECHNICIAN role");
             }
 
             if ($job->activeAssignment()->exists()) {
-                throw new InvalidJobTransition("Job already has an active assignment");
+                throw new InvalidJobTransition("Job already has an active assignment", $current->value, null);
             }
 
             JobAssignment::create([
@@ -67,26 +67,26 @@ final class JobAssignmentService
 
             $current = JobStatus::from($job->status);
 
-            if (!in_array($actor->role, ['ADMIN', 'OPERATOR'], true)) {
+            if (!in_array($actor->role, ['admin', 'operator'], true)) {
                 throw new AuthorizationException("Only operator/admin can assign or reassign");
             }
 
             if ($current !== JobStatus::ASSIGNED) {
-                throw new InvalidJobTransition("Reassign allowed only from ASSIGNED. Current: {$current->value}");
+                throw new InvalidJobTransition("Reassign allowed only from ASSIGNED. Current: {$current->value}", $current->value, JobStatus::TRIAGED->value);
             }
 
-            if ($newTechnician->role !== 'TECHNICIAN') {
+            if ($newTechnician->role !== 'technician') {
                 throw new InvalidJobTransition("Assigned user must have TECHNICIAN role");
             }
 
             $active = $job->activeAssignment()->first();
 
             if (!$active) {
-                throw new InvalidJobTransition("Cannot reassign: no active assignment found");
+                throw new InvalidJobTransition("Cannot reassign: no active assignment found", $current->value, null);
             }
 
             if ($active->accepted_at !== null) {
-                throw new InvalidJobTransition("Cannot reassign: assignment already accepted");
+                throw new InvalidJobTransition("Cannot reassign: assignment already accepted", $current->value, null);
             }
 
             $active->is_active = false;

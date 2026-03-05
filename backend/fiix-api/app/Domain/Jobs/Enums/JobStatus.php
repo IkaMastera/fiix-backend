@@ -4,14 +4,14 @@ namespace App\Domain\Jobs\Enums;
 
 enum JobStatus: string
 {
-    case SUBMITTED = 'SUBMITTED';
-    case TRIAGED = 'TRIAGED';
-    case ASSIGNED = 'ASSIGNED';
-    case IN_PROGRESS = 'IN_PROGRESS';
-    case BLOCKED = 'BLOCKED';
-    case DONE = 'DONE';
-    case CANCELLED = 'CANCELLED';
-    case DISPUTED = 'DISPUTED';
+    case SUBMITTED = 'submitted';
+    case TRIAGED = 'triaged';
+    case ASSIGNED = 'assigned';
+    case IN_PROGRESS = 'in_progress';
+    case BLOCKED = 'blocked';
+    case DONE = 'done';
+    case CANCELLED = 'canceled';
+    case DISPUTED = 'disputed';
 
     public function isTerminal(): bool
     {

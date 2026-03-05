@@ -13,36 +13,44 @@ class JobPolicy
         $to = JobStatus::from($toStatus);
         $from = JobStatus::from($job->status);
 
-        //Refine This Later right now admin and operator can do ops transitions
-        if(in_array($user->role, ['ADMIN', 'OPERATOR'], true)){
+        // Admin and operator can perform any allowed transition
+        if (in_array($user->role, ['admin', 'operator'], true)) {
             return true;
         }
 
-        //Customer Cancellation only before IN_PROGRESS
-        if($user->role === 'USER'){
-            if($to === JobStatus::CANCELLED){
+        // Customer: cancellation only before IN_PROGRESS, dispute only from DONE
+        if ($user->role === 'customer') {
+            if ($to === JobStatus::CANCELLED) {
                 return in_array($from, [JobStatus::SUBMITTED, JobStatus::TRIAGED, JobStatus::ASSIGNED], true)
-                && $job->customer_user_id === $user->id;
+                    && $job->customer_user_id === $user->id;
             }
-            if($to === JobStatus::DISPUTED){
+            if ($to === JobStatus::DISPUTED) {
                 return $from === JobStatus::DONE && $job->customer_user_id === $user->id;
             }
             return false;
         }
 
         // Technician only for assigned jobs
-        if($user->role === 'TECHNICIAN'){
+        if ($user->role === 'technician') {
             $isAssignedToTech = $job->activeAssignment()
                 ->where('technician_user_id', $user->id)
                 ->exists();
 
-                if(!$isAssignedToTech) return false;
-
-                if($to === JobStatus::IN_PROGRESS) return $from === JobStatus::ASSIGNED;
-                if ($to === JobStatus::DONE) return $from === JobStatus::IN_PROGRESS;
-                if ($to === JobStatus::BLOCKED) return $from === JobStatus::IN_PROGRESS;
-
+            if (!$isAssignedToTech) {
                 return false;
+            }
+
+            if ($to === JobStatus::IN_PROGRESS) {
+                return $from === JobStatus::ASSIGNED;
+            }
+            if ($to === JobStatus::DONE) {
+                return $from === JobStatus::IN_PROGRESS;
+            }
+            if ($to === JobStatus::BLOCKED) {
+                return $from === JobStatus::IN_PROGRESS;
+            }
+
+            return false;
         }
 
         return false;
