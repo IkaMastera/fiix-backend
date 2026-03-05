@@ -6,5 +6,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class OperatorProfile extends Model
 {
-    //
+    // UUID primary key
+    protected $keyType = 'string';
+    public $incrementing = false;
+
+    protected $fillable = [
+        'user_id',
+        'display_name',
+        'notes',
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    // --- Relationships ---
+
+    // The user account this profile belongs to
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
