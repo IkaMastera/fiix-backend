@@ -31,6 +31,8 @@ return new class extends Migration
             $table->string("address_text");
             $table->decimal("lat", 10, 7)->nullable();
             $table->decimal("lng", 10, 7)->nullable();
+            $table->string("location_source")->nullable();
+            $table->string("location_accuracy")->nullable();
             $table->string("city_code");
 
             //Priority + state machine
@@ -83,7 +85,22 @@ return new class extends Migration
             $table->index('created_at');
         });
 
-        // CHECK: city_code (v1 list)
+
+        // CHECK: location_source
+        DB::statement("
+            ALTER TABLE jobs
+            ADD CONSTRAINT jobs_location_source_check
+            CHECK (location_source IN ('user_pin','user_text','operator_edit'))
+        ");
+        
+        // CHECK: location_accuracy
+        DB::statement("
+            ALTER TABLE jobs
+            ADD CONSTRAINT jobs_location_accuracy_check
+            CHECK (location_accuracy IN ('approx','precise'))
+        ");
+
+        // CHECK: city_code
         DB::statement("
             ALTER TABLE jobs
             ADD CONSTRAINT jobs_city_code_check
