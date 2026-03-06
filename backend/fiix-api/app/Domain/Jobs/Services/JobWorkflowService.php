@@ -4,6 +4,8 @@ namespace App\Domain\Jobs\Services;
 
 use App\Domain\Jobs\Enums\JobStatus;
 use App\Domain\Jobs\Exceptions\InvalidJobTransition;
+use App\Domain\Jobs\JobTransitionMap;
+use App\Domain\Users\Enums\UserRole;
 use App\Models\Job;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -24,27 +26,44 @@ final class JobWorkflowService
 
             $from = JobStatus::from($job->status);
 
-            // Terminal states are read-only
+            // Terminal states are read-only — nothing can happen after DONE/CANCELLED/DISPUTED
             if ($from->isTerminal()) {
-                throw new InvalidJobTransition("Job is terminal: {$from->value}", $from->value, null);
+                throw new InvalidJobTransition(
+                    "Job is terminal: {$from->value}",
+                    $from->value,
+                    null
+                );
             }
 
-            // State machine enforcement
+            // Check transition is legal according to state machine rules
             if (!JobTransitionMap::isAllowed($from, $to)) {
-                throw new InvalidJobTransition("Not allowed: {$from->value} -> {$to->value}", $from->value, $to->value);
+                throw new InvalidJobTransition(
+                    "Not allowed: {$from->value} -> {$to->value}",
+                    $from->value,
+                    $to->value
+                );
             }
 
-            // Authorization enforcement (explicit actor)
+            // Check this actor is authorized to make this transition
             if (Gate::forUser($actor)->denies('transition', [$job, $to->value])) {
-                throw new InvalidJobTransition("Forbidden transition for this user", $from->value, $to->value);
+                throw new InvalidJobTransition(
+                    "Forbidden transition for this user",
+                    $from->value,
+                    $to->value
+                );
             }
 
-            // BLOCKED requires reason (external cause only)
+            // BLOCKED always requires a reason — technician must explain
             if ($to === JobStatus::BLOCKED && !$reasonCode) {
-                throw new InvalidJobTransition("BLOCKED requires reason_code", $from->value, $to->value);
+                throw new InvalidJobTransition(
+                    "BLOCKED requires reason_code",
+                    $from->value,
+                    $to->value
+                );
             }
 
-            // Accept invariant (ASSIGNED -> IN_PROGRESS)
+            // Accept invariant: ASSIGNED → IN_PROGRESS
+            // Technician must have an active assignment and not have accepted already
             if ($to === JobStatus::IN_PROGRESS) {
 
                 $assignment = $job->activeAssignment()
@@ -67,7 +86,9 @@ final class JobWorkflowService
                     );
                 }
 
+                // Mark the assignment as accepted
                 $assignment->accepted_at = now();
+                $assignment->accepted_by_user_id = $actor->id;
                 $assignment->save();
             }
 
@@ -75,19 +96,21 @@ final class JobWorkflowService
             $job->status = $to->value;
             $job->save();
 
-            // Immutable audit trail
+            // Write immutable audit trail — every transition gets one row
             $job->statusHistory()->create([
-                'from_status' => $from->value,
-                'to_status' => $to->value,
-                'changed_by_user_id' => $actor->id,
-                'reason_code' => $reasonCode,
-                'reason_note' => $reasonNote,
-                'changed_at' => now(),
+                'from_status'         => $from->value,
+                'to_status'           => $to->value,
+                'changed_by_user_id'  => $actor->id,
+                'reason_code'         => $reasonCode,
+                'reason_note'         => $reasonNote,
+                'changed_at'          => now(),
             ]);
 
             return $job->refresh();
         };
 
+        // If caller is already inside a transaction, run without wrapping
+        // If not, wrap in our own transaction so everything is atomic
         return $useTransaction
             ? DB::transaction($fn)
             : $fn();
