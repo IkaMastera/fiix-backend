@@ -116,7 +116,7 @@ return Application::configure(basePath: dirname(__DIR__))
             );
         });
 
-        // Fallback → 500 (safe in prod, helpful in local)
+        // Fallback → 500 (safe in prod, helpful in local, no sensitive information gets leaked)
         $exceptions->render(function (Throwable $e) use ($error) {
             $details = app()->environment('local')
                 ? [
