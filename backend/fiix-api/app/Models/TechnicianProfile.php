@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Domain\Users\Enums\UserStatus;
 use Illuminate\Database\Eloquent\Model;
 
 class TechnicianProfile extends Model
@@ -22,10 +23,10 @@ class TechnicianProfile extends Model
     ];
 
     protected $casts = [
-        'verified_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'rating_avg' => 'decimal:2',
+        'verified_at'    => 'datetime',
+        'created_at'     => 'datetime',
+        'updated_at'     => 'datetime',
+        'rating_avg'     => 'decimal:2',
         'jobs_completed' => 'integer',
     ];
 
@@ -43,12 +44,13 @@ class TechnicianProfile extends Model
         return $this->belongsTo(User::class, 'verified_by_user_id');
     }
 
-    // --- Helper ---
+    // --- Helpers ---
 
-    // Quick check if this technician is verified and eligible for assignments
+    // Is this technician verified and their account active?
+    // Both conditions must be true before they can receive assignments
     public function isEligibleForAssignment(): bool
     {
         return $this->verified_at !== null
-            && $this->user->status === 'active';
+            && $this->user->status === UserStatus::ACTIVE->value;
     }
 }
