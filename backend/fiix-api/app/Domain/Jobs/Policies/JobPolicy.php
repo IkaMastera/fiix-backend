@@ -2,9 +2,10 @@
 
 namespace App\Domain\Jobs\Policies;
 
-use App\Models\User;
-use App\Models\Job;
 use App\Domain\Jobs\Enums\JobStatus;
+use App\Domain\Users\Enums\UserRole;
+use App\Models\Job;
+use App\Models\User;
 
 class JobPolicy
 {
@@ -14,29 +15,36 @@ class JobPolicy
         $from = JobStatus::from($job->status);
 
         // Admin and operator can perform any allowed transition
-        if (in_array($user->role, ['admin', 'operator'], true)) {
+        if (in_array($user->role, [UserRole::ADMIN->value, UserRole::OPERATOR->value], true)) {
             return true;
         }
 
-        // Customer: cancellation only before IN_PROGRESS, dispute only from DONE
-        if ($user->role === 'customer') {
+        // Customer: cancel only before IN_PROGRESS, dispute only from DONE
+        if ($user->role === UserRole::CUSTOMER->value) {
             if ($to === JobStatus::CANCELLED) {
-                return in_array($from, [JobStatus::SUBMITTED, JobStatus::TRIAGED, JobStatus::ASSIGNED], true)
-                    && $job->customer_user_id === $user->id;
+                return in_array($from, [
+                    JobStatus::SUBMITTED,
+                    JobStatus::TRIAGED,
+                    JobStatus::ASSIGNED,
+                ], true) && $job->customer_user_id === $user->id;
             }
             if ($to === JobStatus::DISPUTED) {
-                return $from === JobStatus::DONE && $job->customer_user_id === $user->id;
+                return $from === JobStatus::DONE
+                    && $job->customer_user_id === $user->id;
             }
             return false;
         }
 
-        // Technician only for assigned jobs
-        $activeAssignment = $job->relationLoaded('activeAssignment')
-            ? $job->activeAssignment
-            : $job->activeAssignment()->first();
+        // Technician: only for jobs assigned to them
+        if ($user->role === UserRole::TECHNICIAN->value) {
 
-        $isAssignedToTech = $activeAssignment
-            && (string) $activeAssignment->technician_user_id === (string) $user->id;
+            // Use eager loaded relation if available, avoid extra DB query
+            $activeAssignment = $job->relationLoaded('activeAssignment')
+                ? $job->activeAssignment
+                : $job->activeAssignment()->first();
+
+            $isAssignedToTech = $activeAssignment
+                && (string) $activeAssignment->technician_user_id === (string) $user->id;
 
             if (!$isAssignedToTech) {
                 return false;
@@ -56,6 +64,5 @@ class JobPolicy
         }
 
         return false;
-
     }
 }
