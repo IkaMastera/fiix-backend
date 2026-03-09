@@ -6,23 +6,20 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ReassignJobRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            // The new technician to assign this job to
+            'technician_id' => ['required', 'uuid', 'exists:users,id'],
+
+            // Optional reason for reassignment (goes into audit trail)
+            'reason_code'   => ['nullable', 'string', 'max:100'],
+            'reason_note'   => ['nullable', 'string', 'max:1000'],
         ];
     }
 }
