@@ -3,15 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class JobStatusHistory extends Model
 {
     // UUID primary key
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;
+
+    // Table name
+    protected $table = 'job_status_history';
 
     // This table has no updated_at - it is append only, never updated
     public $timestamps = false;
+    
 
     protected $fillable = [
         'job_id',

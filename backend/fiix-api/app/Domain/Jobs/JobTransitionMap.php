@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Jobs\Services;
+namespace App\Domain\Jobs;
 
 use App\Domain\Jobs\Enums\JobStatus;
 

@@ -4,12 +4,11 @@ namespace App\Models;
 
 use App\Domain\Users\Enums\UserStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class TechnicianProfile extends Model
 {
-    // UUID primary key
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;  
 
     protected $fillable = [
         'user_id',

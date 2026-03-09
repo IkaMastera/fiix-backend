@@ -3,12 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class JobAssignment extends Model
 {
-    // UUID primary key
-    protected $keyType = 'string';
-    public $incrementing = false;
+    use HasUuids;  
 
     protected $fillable = [
         'job_id',
