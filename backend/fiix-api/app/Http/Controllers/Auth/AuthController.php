@@ -33,7 +33,7 @@ final class AuthController extends Controller
             'status'     => $data['role'] === UserRole::TECHNICIAN->value
                 ? UserStatus::PENDING_VERIFICATION->value
                 : UserStatus::ACTIVE->value,
-        ])
+        ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
