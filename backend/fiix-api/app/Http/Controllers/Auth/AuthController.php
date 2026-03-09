@@ -63,7 +63,7 @@ final class AuthController extends Controller
         $user = User::where('email', $data['email'])->first();
 
         //Invalid credentials - same message for both cases(this is for security)
-        if($user || !Hash::check($data['password'], $user->password)) {
+        if(!$user || !Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Invalid credentials.'],
             ]);
